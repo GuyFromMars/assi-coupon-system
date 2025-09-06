@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,15 +41,34 @@ import {
 
 // Example columns
 const columns = [
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
+    {
+    id: "select",
+    header: ({ table }) => (
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      </div>
     ),
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
   },
   {
-    accessorKey: "balance",
+    accessorKey: "name",
     header: ({ column }) => (
       <span
       className="flex"
@@ -57,18 +77,13 @@ const columns = [
           column.toggleSorting(column.getIsSorted() === "asc")
         }
       >
-        Balance
+        Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </span>
     ),
-    cell: ({ row }) => {
-  const balance = row.getValue("balance");
-  return (
-    <div className={balance < 60 ? "text-red-500 font-semibold" : ""}>
-      GHS {balance}
-    </div>
-  );
-},
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("name")}</div>
+    ),
   },
   {
   accessorKey: "couponcode",
@@ -81,70 +96,19 @@ const columns = [
     </div>
   ),
 },
-  {
-  id: "actions",
-  header: "Actions",
-  enableHiding: false,
-  cell: () => {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-    return (
-      <>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem disabled>
-              Placeholder 1
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              Placeholder 2
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
-              Open Dialog
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This is just a placeholder dialog. No action will be performed.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => setIsDialogOpen(false)}>
-                Close
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </>
-    );
-  },
-},
-
 ];
 
 // Example static data
 const defaultData = [
-  { id: "1", name: "Kwaku Manu", balance: 650, couponcode: "assicat1" },
-  { id: "2", name: "Patience Adjani", balance: 210, couponcode: "assicat3" },
-  { id: "3", name: "Kennedy Klugah", balance: 75, couponcode: "assicat1" },
-  { id: "4", name: "Nathan Salifu", balance: 75, couponcode: "assicat2" },
-  { id: "5", name: "Adjoa Mary", balance: 95, couponcode: "assicat1" },
-  { id: "6", name: "Akua Maame", balance: 15, couponcode: "assicat3" },
+  { id: "1", name: "Kwaku Manu", couponcode: "assicat1" },
+  { id: "2", name: "Patience Adjani", couponcode: "assicat3" },
+  { id: "3", name: "Kennedy Klugah", couponcode: "assicat1" },
+  { id: "4", name: "Nathan Salifu", couponcode: "assicat2" },
+  { id: "5", name: "Adjoa Mary", couponcode: "assicat1" },
+  { id: "6", name: "Akua Maame", couponcode: "assicat3" },
 ];
 
-export function AllStudents() {
+export function MakeTransactions() {
   const [data] = useState(() => [...defaultData]);
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
