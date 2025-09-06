@@ -170,7 +170,7 @@ export function Formlist() {
     <div className="w-full px-4 lg:px-6">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter form names..."
+          placeholder="enter student name..."
           value={table.getColumn("name")?.getFilterValue() || ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
