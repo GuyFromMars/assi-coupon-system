@@ -8,7 +8,6 @@ function CouponGroupForm() {
       <CouponGroup />
       <Button
             variant="outline"
-            size="sm"
           >
             Search
           </Button>
