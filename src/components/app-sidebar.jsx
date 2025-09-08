@@ -48,13 +48,15 @@ export function AppSidebar() {
         <SidebarHeader>
     <SidebarMenu>
       <SidebarMenuItem>
-        Dashboard
+        <div className=" text-2xl p-2">
+          Dashboard
+        </div>
       </SidebarMenuItem>
     </SidebarMenu>
   </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

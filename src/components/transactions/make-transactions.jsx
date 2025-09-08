@@ -96,16 +96,25 @@ const columns = [
     </div>
   ),
 },
+{
+  accessorKey: "times",
+  header: "Issued Today",
+  cell: ({ row }) => (
+    <div className="font-medium w-full flex justify-center sm:justify-start sm:pl-6">
+      {row.getValue("times")}
+    </div>
+  ),
+},
 ];
 
 // Example static data
 const defaultData = [
-  { id: "1", name: "Kwaku Manu", couponcode: "assicat1" },
-  { id: "2", name: "Patience Adjani", couponcode: "assicat3" },
-  { id: "3", name: "Kennedy Klugah", couponcode: "assicat1" },
-  { id: "4", name: "Nathan Salifu", couponcode: "assicat2" },
-  { id: "5", name: "Adjoa Mary", couponcode: "assicat1" },
-  { id: "6", name: "Akua Maame", couponcode: "assicat3" },
+  { id: "1", name: "Kwaku Manu", couponcode: "assicat1", times: 1 },
+  { id: "2", name: "Patience Adjani", couponcode: "assicat3", times: 1 },
+  { id: "3", name: "Kennedy Klugah", couponcode: "assicat1", times: 2 },
+  { id: "4", name: "Nathan Salifu", couponcode: "assicat2", times: 1 },
+  { id: "5", name: "Adjoa Mary", couponcode: "assicat1", times: 0 },
+  { id: "6", name: "Akua Maame", couponcode: "assicat3", times: 1 },
 ];
 
 export function MakeTransactions() {
@@ -210,6 +219,16 @@ export function MakeTransactions() {
             Next
           </Button>
         </div>
+      </div>
+      <br />
+      <div>
+        <Button
+        size="lg"
+        variant="outline"
+        className="bg-blue-400 text-white sm:w-1/4 w-full"
+        >
+          Submit
+        </Button>
       </div>
     </div>
   );

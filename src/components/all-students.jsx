@@ -1,5 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchStudents } from "@/lib/store/slices/studentsSlice";
+import StudentTableSkeleton from "@/components/skeleton/student-table-skeleton";
 import {
   flexRender,
   getCoreRowModel,
@@ -8,7 +11,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown ,MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,7 +26,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -37,119 +38,101 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ArrowUpDown, MoreVertical } from "lucide-react";
 
-// Example columns
 const columns = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
-    ),
+    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
   },
   {
     accessorKey: "balance",
     header: ({ column }) => (
       <span
-      className="flex"
-        variant="ghost"
-        onClick={() =>
-          column.toggleSorting(column.getIsSorted() === "asc")
-        }
+        className="flex cursor-pointer"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Balance
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        Balance <ArrowUpDown className="ml-2 h-4 w-4" />
       </span>
     ),
     cell: ({ row }) => {
-  const balance = row.getValue("balance");
-  return (
-    <div className={balance < 60 ? "text-red-500 font-semibold" : ""}>
-      GHS {balance}
-    </div>
-  );
-},
+      const balance = row.getValue("balance");
+      return (
+        <div className={balance < 60 ? "text-red-500 font-semibold" : ""}>
+          GHS {balance}
+        </div>
+      );
+    },
   },
   {
-  accessorKey: "couponcode",
-  header: () => (
-    <div className="hidden sm:block">Coupon Code</div>
-  ),
-  cell: ({ row }) => (
-    <div className="hidden sm:block text-primary uppercase">
-      {row.getValue("couponcode")}
-    </div>
-  ),
-},
-  {
-  id: "actions",
-  header: "Actions",
-  enableHiding: false,
-  cell: () => {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-    return (
-      <>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem disabled>
-              Placeholder 1
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              Placeholder 2
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
-              Open Dialog
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This is just a placeholder dialog. No action will be performed.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => setIsDialogOpen(false)}>
-                Close
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </>
-    );
+    accessorKey: "couponcode",
+    header: () => <div className="hidden sm:block">Coupon Code</div>,
+    cell: ({ row }) => (
+      <div className="hidden sm:block text-primary uppercase">
+        {row.getValue("couponcode")}
+      </div>
+    ),
   },
-},
+  {
+    id: "actions",
+    header: "Actions",
+    enableHiding: false,
+    cell: () => {
+      const [isDialogOpen, setIsDialogOpen] = useState(false);
+      return (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem disabled>Placeholder 1</DropdownMenuItem>
+              <DropdownMenuItem disabled>Placeholder 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
+                Open Dialog
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-];
-
-// Example static data
-const defaultData = [
-  { id: "1", name: "Kwaku Manu", balance: 650, couponcode: "assicat1" },
-  { id: "2", name: "Patience Adjani", balance: 210, couponcode: "assicat3" },
-  { id: "3", name: "Kennedy Klugah", balance: 75, couponcode: "assicat1" },
-  { id: "4", name: "Nathan Salifu", balance: 75, couponcode: "assicat2" },
-  { id: "5", name: "Adjoa Mary", balance: 95, couponcode: "assicat1" },
-  { id: "6", name: "Akua Maame", balance: 15, couponcode: "assicat3" },
+          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This is just a placeholder dialog. No action will be performed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => setIsDialogOpen(false)}>
+                  Close
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      );
+    },
+  },
 ];
 
 export function AllStudents() {
-  const [data] = useState(() => [...defaultData]);
+  const dispatch = useDispatch();
+  const { data, loading } = useSelector((state) => state.students);
+
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+
+  useEffect(() => {
+    dispatch(fetchStudents());
+  }, [dispatch]);
 
   const table = useReactTable({
     data,
@@ -166,8 +149,13 @@ export function AllStudents() {
     initialState: { pagination: { pageSize: 5 } },
   });
 
+  if (loading) {
+    return <StudentTableSkeleton />;
+  }
+
   return (
     <div className="w-full px-4 lg:px-6">
+      {/* Search input */}
       <div className="flex items-center py-4">
         <Input
           placeholder="Enter student name..."
@@ -178,6 +166,8 @@ export function AllStudents() {
           className="max-w-sm"
         />
       </div>
+
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -187,10 +177,7 @@ export function AllStudents() {
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -199,16 +186,10 @@ export function AllStudents() {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -223,6 +204,8 @@ export function AllStudents() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Footer with row count + pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}

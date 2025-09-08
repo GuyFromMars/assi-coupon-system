@@ -7,8 +7,8 @@ function page() {
   return (
     <>
     <SearchForm />
-      <MakeTransactions />
-      </>
+    <MakeTransactions />
+    </>
   )
 }
 
