@@ -1,5 +1,4 @@
-// scripts/seedStudents.js
-import { db } from "@/lib/firebase/firebase";
+/* import { db } from "@/lib/firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
 const students = [
@@ -34,3 +33,4 @@ export async function seedStudents() {
     console.error("❌ Error seeding students:", err);
   }
 }
+ */
