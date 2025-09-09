@@ -1,6 +1,8 @@
-/* import { db } from "@/lib/firebase/firebase";
+import { db } from "@/lib/firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
+
+{/* seed students*/}
 const students = [
   { name: "Yaw Mensah", balance: 120, couponcode: "assicat2" },
   { name: "Ama Serwaa", balance: 340, couponcode: "assicat3" },
@@ -18,7 +20,6 @@ const students = [
   { name: "Abigail Tetteh", balance: 180, couponcode: "assicat3" },
 ];
 
-
 export async function seedStudents() {
   try {
     const colRef = collection(db, "students");
@@ -33,4 +34,28 @@ export async function seedStudents() {
     console.error("❌ Error seeding students:", err);
   }
 }
- */
+
+
+{/* seed coupons*/}
+const coupons = [
+  { codename: "assicat1", amount: 7 },
+  { codename: "assicat2", amount: 10 },
+  { codename: "assicat3", amount: 15 },
+  { codename: "assicat4", amount: 22 },
+];
+
+
+export async function seedCoupons() {
+  try {
+    const colRef = collection(db, "coupons");
+
+    for (const coupon of coupons) {
+      await addDoc(colRef, coupon);
+      console.log(`✅ Added ${coupon.codename}`);
+    }
+
+    console.log("🎉 Seeding complete!");
+  } catch (err) {
+    console.error("❌ Error seeding coupons:", err);
+  }
+}

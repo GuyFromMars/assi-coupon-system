@@ -2,10 +2,38 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Async thunk to fetch students
 export const fetchStudents = createAsyncThunk("students/fetchAll", async () => {
-  const res = await fetch("/api/allstudents");
+  const res = await fetch("/api/students");
   if (!res.ok) throw new Error("Failed to fetch students");
   return await res.json();
 });
+
+export const updateStudentBalance = createAsyncThunk(
+  "students/updateBalance",
+  async ({ id, amount }) => {
+    const res = await fetch("/api/students/update-balance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, amount }),
+    });
+
+    if (!res.ok) throw new Error("Failed to update balance");
+    return await res.json();
+  }
+);
+
+export const editStudent = createAsyncThunk(
+  "students/edit",
+  async ({ id, data }) => {
+    const res = await fetch("/api/students/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...data }),
+    });
+    if (!res.ok) throw new Error("Failed to edit student");
+    return await res.json();
+  }
+);
+
 
 const studentsSlice = createSlice({
   name: "students",
@@ -28,6 +56,22 @@ const studentsSlice = createSlice({
       .addCase(fetchStudents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(updateStudentBalance.fulfilled, (state, action) => {
+      const { id, balance } = action.payload;
+      const student = state.data.find((s) => s.id === id);
+      if (student) {
+        student.balance = balance; // update with new balance
+      }
+      })
+      .addCase(editStudent.fulfilled, (state, action) => {
+      const idx = state.data.findIndex((s) => s.id === action.payload.id);
+      if (idx > -1) {
+      state.data[idx] = {
+      ...state.data[idx],    // keep existing fields (like balance)
+      ...action.payload,     // overwrite only what was updated
+      };
+      }
       });
   },
 });
