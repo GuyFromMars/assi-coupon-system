@@ -63,6 +63,7 @@ import {
 import { ArrowUpDown, MoreVertical } from "lucide-react";
 import { fetchCoupons } from "@/lib/store/slices/couponsSlice";
 import { toast } from "sonner"
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AllStudents() {
   const dispatch = useDispatch();
@@ -71,6 +72,8 @@ export function AllStudents() {
   const { data: coupons, cloading, cerror } = useSelector(
     (state) => state.coupons
   );
+
+  const isMobile = useIsMobile()
 
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -116,6 +119,7 @@ export function AllStudents() {
 
   const handleConfirmBalanceUpdate = async () => {
     if (selectedStudent && balanceInput) {
+      let toastId = toast.loading("Updating Balance...");
       try {
         await dispatch(
           updateStudentBalance({
@@ -126,10 +130,12 @@ export function AllStudents() {
 
         toast.success("Balance Updated", {
         description: `${selectedStudent.name}'s balance increased by GHS ${balanceInput}`,
+        id: toastId,
         });
       } catch (err) {
         toast.error("Error", {
         description: err.message || "Failed to update balance",
+        id: toastId,
         });
       }
     }
@@ -153,6 +159,7 @@ export function AllStudents() {
 
   const handleConfirmEdit = async () => {
     if (selectedStudent) {
+      let toastId = toast.loading("Updating Student Info...");
       try {
         await dispatch(
           editStudent({
@@ -167,10 +174,12 @@ export function AllStudents() {
 
         toast.success("Student Updated", {
         description: `${selectedStudent.name}'s info has been updated.`,
+        id: toastId,
         });
       } catch (err) {
         toast.error("Error", {
         description: err.message || "Could not update student",
+        id: toastId,
         });
       }
     }
@@ -319,7 +328,7 @@ export function AllStudents() {
             <Drawer
               open={isDrawerOpen}
               onOpenChange={setIsDrawerOpen}
-              direction="right"
+               direction={isMobile ? "bottom" : "right"}
             >
               <DrawerContent>
                 <DrawerHeader>
@@ -344,13 +353,13 @@ export function AllStudents() {
                       defaultValue={editCouponRef.current}
                       onValueChange={(v) => (editCouponRef.current = v)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="uppercase">
                         <SelectValue placeholder="Select Coupon" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="uppercase">
                         {coupons.map((c) => (
                           <SelectItem key={c.id} value={c.codename}>
-                            {c.codename} ({c.amount})
+                            {c.codename} - GHS {c.amount}
                           </SelectItem>
                         ))}
                       </SelectContent>

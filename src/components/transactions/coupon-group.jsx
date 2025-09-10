@@ -1,87 +1,41 @@
-"use client"
-
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-
-const coupongroup = [
-  {
-    value: "assicat1",
-    label: "25",
-  },
-  {
-    value: "assicat2",
-    label: "30",
-  },
-  {
-    value: "assicat3",
-    label: "35",
-  },
-]
+"use client";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedCoupon } from "@/lib/store/slices/transactionsSlice";
+import { fetchCoupons } from "@/lib/store/slices/couponsSlice";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 
 function CouponGroup() {
-const [open, setOpen] = React.useState(false)
-const [value, setValue] = React.useState("")
+  const dispatch = useDispatch();
+  const coupons = useSelector((state) => state.coupons.data) || [];
+  const cloading = useSelector((state) => state.coupons.cloading);
+  const cerror = useSelector((state) => state.coupons.cerror);
+
+  const selectedCoupon = useSelector((state) => state.transactions.selectedCoupon);
+  //console.log(selectedCoupon)
+
+  useEffect(() => {
+    dispatch(fetchCoupons());
+  }, [dispatch]);
+
   return (
-     <div>
-       <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] justify-between"
-        >
-          {value
-            ? coupongroup.find((couponitem) => couponitem.value === value)?.label
-            : "Select coupongroup..."}
-          <ChevronsUpDown className="opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandList>
-            <CommandGroup>
-              {coupongroup.map((couponitem) => (
-                <CommandItem
-                  key={couponitem.value}
-                  value={couponitem.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue)
-                    setOpen(false)
-                  }}
-                >
-                  {couponitem.label}
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      value === couponitem.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-     </div>
-  )
+    <Select
+      //value={selectedCoupon || ""}
+      onValueChange={(codename) => dispatch(setSelectedCoupon(codename))}
+      disabled={cloading || cerror}
+    >
+      <SelectTrigger className="w-[200px] uppercase">
+        <SelectValue placeholder={cloading ? "Loading..." : "Select Coupon"} />
+      </SelectTrigger>
+      <SelectContent className="uppercase">
+        {coupons.map((c) => (
+          <SelectItem key={c.id} value={c.codename}>
+            {c.codename} - GHS {c.amount}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
-export default CouponGroup
+export default CouponGroup;
