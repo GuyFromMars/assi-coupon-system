@@ -112,7 +112,7 @@ export function MakeTransactions() {
       toast.success("Transactions processed successfully", { id: loadingToast });
 
       // Refresh table data
-      dispatch(searchStudentsByCoupon(selectedCoupon));
+      //dispatch(searchStudentsByCoupon(selectedCoupon));
 
       // Unselect all rows
       table.resetRowSelection();

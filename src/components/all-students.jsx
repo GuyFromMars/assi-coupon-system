@@ -263,7 +263,7 @@ export function AllStudents() {
                     (window.location.href = `/dashboard/transactions/${student.id}`)
                   }
                 >
-                  View Transactions
+                  View History
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

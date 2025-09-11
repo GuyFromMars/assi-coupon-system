@@ -1,5 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "next/navigation";
+import { fetchStudentInfo } from "@/lib/store/slices/infoSlice";
+import { deleteTransaction } from "@/lib/store/slices/infoSlice";
 import {
   flexRender,
   getCoreRowModel,
@@ -8,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown ,MoreVertical } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,30 +41,69 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ViewTransactionsSkeleton from "../skeleton/view-transactions-skeleton";
+import { toast } from "sonner";
 
-// Example columns
-const columns = [
-  {
-  accessorKey: "date",
+export function ViewTransactions() {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const { transactions, loading } = useSelector((state) => state.info);
+
+  const [sorting, setSorting] = useState([]);
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [columnVisibility, setColumnVisibility] = useState({});
+  const [rowSelection, setRowSelection] = useState({});
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchStudentInfo(id));
+    }
+  }, [id, dispatch]);
+
+  // Custom filter function
+const dateFilterFn = (row, columnId, filterValue) => {
+  const tsObj = row.getValue(columnId);
+  if (!tsObj || typeof tsObj.seconds !== "number") return false;
+
+  const date = new Date(tsObj.seconds * 1000);
+  // Format the date the same way you display it
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+
+  return formattedDate.toLowerCase().includes(filterValue.toLowerCase());
+};
+
+  const columns = [
+    {
+  accessorKey: "timestamp",
   header: "Date",
   cell: ({ row }) => {
-    const dateValue = row.getValue("date");
-    const date = new Date(dateValue);
-    const isValidDate = dateValue && !isNaN(date);
-    const shortDate = isValidDate
-      ? new Intl.DateTimeFormat('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        }).format(date)
-      : "Invalid Date";
-    const longDate = isValidDate
-      ? new Intl.DateTimeFormat('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        }).format(date)
-      : "Invalid Date";
+    const tsObj = row.getValue("timestamp");
+
+    // Check if timestamp exists and has seconds
+    if (!tsObj || typeof tsObj.seconds !== "number") {
+      return <div>Invalid Date</div>;
+    }
+
+    // Reconstruct Firestore Timestamp and convert to JS Date
+    const date = new Date(tsObj.seconds * 1000); // ignore nanoseconds for display
+
+    // Format for small and large screens
+    const shortDate = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(date);
+
+    const longDate = new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(date);
+
     return (
       <div className="font-medium">
         <span className="block sm:hidden">{shortDate}</span>
@@ -68,95 +111,99 @@ const columns = [
       </div>
     );
   },
-},
-  {
-    accessorKey: "amount",
-    header:() => (
-    <div className="hidden sm:block">Amount</div>
-  ),
-    cell: ({ row }) => (
-    <div className="font-medium hidden sm:block">GHS {row.getValue("amount")}</div>
-    ),
-  },
-  {
-  accessorKey: "balanceRemaining",
-  header: "Balance Remaining",
-  cell: ({ row }) => {
-  const balance = row.getValue("balanceRemaining");
-  return (
-    <div className={balance < 0 ? "text-red-500 font-semibold" : ""}>
-      GHS {balance}
-    </div>
-  );
-},
-},
-  {
-  id: "actions",
-  header: "Actions",
-  enableHiding: false,
-  cell: () => {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+  filterFn : dateFilterFn, // attach your custom filter
+    },
+    {
+      accessorKey: "amount",
+      header: () => <div className="hidden sm:block">Amount</div>,
+      cell: ({ row }) => (
+        <div className="font-medium hidden sm:block">
+          GHS {row.getValue("amount")}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "remainingBalance",
+      header: "Balance Remaining",
+      cell: ({ row }) => {
+        const balance = row.getValue("remainingBalance");
+        return (
+          <div className={balance < 0 ? "text-red-500 font-semibold" : ""}>
+            GHS {balance}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const [isDialogOpen, setIsDialogOpen] = useState(false);
+        const transactionId = row.original.id;
+        const amount = row.original.amount;
 
-    return (
-      <>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        return (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This is just a placeholder dialog. No action will be performed.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => setIsDialogOpen(false)}>
-                Close
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </>
-    );
-  },
-},
-
-];
-
-// Example static data
-const defaultData = [
-  { id: "1", date: "September 10, 2025", amount: 20, balanceRemaining: 200 },
-  { id: "2", date: "September 11, 2025", amount: 20, balanceRemaining: 180 },
-  { id: "3", date: "September 12, 2025", amount: 20, balanceRemaining: 160 },
-  { id: "4", date: "September 13, 2025", amount: 20, balanceRemaining: 140 },
-  { id: "5", date: "September 14, 2025", amount: 20, balanceRemaining: 120 },
-  { id: "6", date: "September 15, 2025", amount: 20, balanceRemaining: 100 },
-];
-
-export function ViewTransactions() {
-  const [data] = useState(() => [...defaultData]);
-  const [sorting, setSorting] = useState([]);
-  const [columnFilters, setColumnFilters] = useState([]);
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [rowSelection, setRowSelection] = useState({});
+            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will delete the transaction and restore its amount of <span className="font-semibold">GHS {amount}</span> to
+                    the balance.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                      onClick={async () => {
+                      let toastId = toast.loading("Deleting Transaction...");
+                      try {
+                      await dispatch(
+                      deleteTransaction({ studentId: id, transactionId: transactionId })
+                      ).unwrap();
+                      setIsDialogOpen(false);
+                      toast.success("Success", {
+                          description: `Transaction Deleted`,
+                          id: toastId,
+                        });
+                      } catch (err) {
+                      toast.error("Error", {
+                        description: err.message || "Failed to update balance",
+                        id: toastId,
+                        });
+                      }
+                      }}
+                      >
+                      Confirm
+                      </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        );
+      },
+    },
+  ];
 
   const table = useReactTable({
-    data,
+    data: transactions,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -170,14 +217,16 @@ export function ViewTransactions() {
     initialState: { pagination: { pageSize: 5 } },
   });
 
+  if (loading) return <ViewTransactionsSkeleton />;
+
   return (
     <div className="w-full px-4 lg:px-6">
       <div className="flex items-center py-4">
         <Input
           placeholder="Enter date to filter..."
-          value={table.getColumn("date")?.getFilterValue() || ""}
+          value={table.getColumn("timestamp")?.getFilterValue() || ""}
           onChange={(event) =>
-            table.getColumn("date")?.setFilterValue(event.target.value)
+            table.getColumn("timestamp")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

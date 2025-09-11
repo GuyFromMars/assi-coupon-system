@@ -15,7 +15,7 @@ function CouponGroupForm() {
       toast("Please select a coupon first");
       return;
     }
-    console.log(selectedCoupon)
+    //console.log(selectedCoupon)
     dispatch(searchStudentsByCoupon(selectedCoupon));
   };
 
